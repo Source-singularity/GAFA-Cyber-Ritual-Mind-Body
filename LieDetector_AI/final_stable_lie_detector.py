@@ -36,25 +36,25 @@ current_bpm = 0.0
 active_serial = None # 用于存储当前活跃的串口对象
 
 def serial_worker():
-    global current_bpm
+    global current_bpm, active_serial  # ← 加 active_serial
     for port in ['/dev/ttyUSB0', '/dev/ttyACM0', '/dev/ttyUSB1']:
         try:
             ser = serial.Serial(port, 115200, timeout=0.01)
+            active_serial = ser  # ← 加这行
             print(f"✅ 串口已连接: {port}")
             while True:
                 line = ser.readline().decode('utf-8', errors='ignore').strip()
                 if not line: continue
                 # 解析波形
-                if ">Waveform:" in line:
+                if line.startswith("<W:") and line.endswith(">"):
                     try:
-                        val = line.split(">Waveform:")[1].split("|")[0]
-                        waveform_queue.append(float(val))
-                    except: pass
-                # 解析心率
-                if "Avg:" in line:
-                    try:
-                        current_bpm = float(line.split("Avg: ")[1])
-                    except: pass
+                        content = line[1:-1]  # 去掉 < >
+                        parts = dict(p.split(":", 1) for p in content.split(","))
+                        waveform_queue.append(float(parts["W"]))
+                        current_bpm = float(parts["B"])
+                        # 顺手也能拿到情绪，但这边是发出去的，不是接收的
+                    except:
+                        pass
         except: continue
 
 threading.Thread(target=serial_worker, daemon=True).start()
