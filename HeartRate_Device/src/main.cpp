@@ -416,6 +416,7 @@ void loop() {
     // 保留 BPM 的目的：电机可以继续按最后一次测量值运动，不会突然停下
     smoothedIR    = 0;
     isPulseRising = false;
+    currentBPM    = 0;    // ★ 新增这行：手指离开，BPM 立刻归零
   }
 
   // 向 PC 发送实时数据（无论有无手指都发送，维持 PC 端 UI 刷新）
@@ -434,11 +435,9 @@ void loop() {
     case STATE_IDLE:
       // 只要曾经测到过心率（currentBPM > 0），就开始运动
       // 即使手指临时离开，也按最后一次 BPM 继续运行
-      if (currentBPM > 0) {
         calculateMotionParameters();  // 决策：锁定速度和重复次数
         startTrip(true);              // 开始上行
         sysState = STATE_MOVING_UP;
-      }
       break;
 
     case STATE_MOVING_UP:
