@@ -1,0 +1,18 @@
+import cv2
+
+cap = cv2.VideoCapture(0)
+if not cap.isOpened():
+    print("相机0无法打开，正在尝试相机2...")
+    cap = cv2.VideoCapture(2) # 很多 USB 摄像头是 2 号
+
+if cap.isOpened():
+    print("成功！摄像头已开启，按 Q 退出。")
+    while True:
+        ret, frame = cap.read()
+        if ret:
+            cv2.imshow("Camera Test", frame)
+            if cv2.waitKey(1) & 0xFF == ord('q'): break
+    cap.release()
+    cv2.destroyAllWindows()
+else:
+    print("死机了，相机还是打不开，检查 ls /dev/video* 输出")
