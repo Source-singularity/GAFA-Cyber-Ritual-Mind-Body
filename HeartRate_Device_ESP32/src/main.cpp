@@ -29,8 +29,13 @@ char packetBuffer[255];                  // 接收数据缓冲
 // ================= 常量与系统参数 =================
 const long STEPS_PER_TRIP = 10000;
 const float MIN_CYCLE_TIME = 2.5;
-const float MAX_CYCLE_TIME = 30.0;
+const float MAX_CYCLE_TIME = 20.0;
 const unsigned long SOLENOID_PULSE_MS = 100;
+
+// 根据你驱动器规格填这个值，单位 µs
+// 保守起见先填 150，再根据实测往下调
+const uint64_t MIN_ALARM_US = 85.0;
+
 
 unsigned long solenoidOffTime = 0;
 long  lastBeatTime    = 0;
@@ -161,6 +166,7 @@ void startTrip(bool isUp) {
   // ESP32 定时器基准配置为 1MHz (1us/tick)
   // Alarm 触发周期 (微秒) = 1,000,000 / toggleFreq
   uint64_t alarmValue = (uint64_t)(1000000.0 / toggleFreq);
+  if (alarmValue < MIN_ALARM_US) alarmValue = MIN_ALARM_US;  // ← 加这一行
   
   timerAlarmWrite(stepperTimer, alarmValue, true);
   timerAlarmEnable(stepperTimer);
