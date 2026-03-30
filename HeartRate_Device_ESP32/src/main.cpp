@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <Wire.h>
-#include <MAX30105.h>
+#include <MAX30105.h> 
 #include <WiFi.h>      // ★ 新增：WiFi 库
 #include <WiFiUdp.h>   // ★ 新增：UDP 库
 
@@ -29,12 +29,12 @@ char packetBuffer[255];                  // 接收数据缓冲
 // ================= 常量与系统参数 =================
 const long STEPS_PER_TRIP = 10000;
 const float MIN_CYCLE_TIME = 2.5;
-const float MAX_CYCLE_TIME = 20.0;
+const float MAX_CYCLE_TIME = 15.0;
 const unsigned long SOLENOID_PULSE_MS = 100;
 
 // 根据你驱动器规格填这个值，单位 µs
 // 保守起见先填 150，再根据实测往下调
-const uint64_t MIN_ALARM_US = 85.0;
+const uint64_t MIN_ALARM_US = 90;  
 
 
 unsigned long solenoidOffTime = 0;
@@ -148,10 +148,12 @@ void startTrip(bool isUp) {
   timerAlarmDisable(stepperTimer);
   delayMicroseconds(10);
   
-  digitalWrite(DIR_PIN, isUp ? HIGH : LOW);
+ // 周期开始方向：LOW 上行，HIGH 下行，现在是反着写的，因为了，我把电机方向认反了，
+ // 哈哈哈，反正你调试的时候看到电机动反了就把这里改成 isUp ? HIGH : LOW 就行了
+  digitalWrite(DIR_PIN, isUp ? LOW : HIGH);
 
   portENTER_CRITICAL(&timerMux);
-  stepsRemaining = STEPS_PER_TRIP;
+  stepsRemaining = STEPS_PER_TRIP; 
   motionComplete = false;
   pulseState     = false;
   digitalWrite(PUL_PIN, LOW);
